@@ -26,14 +26,12 @@
 
     - e.g. 3.1415926
 
-- 4.測試將會以下指令 compile 同學們的程式碼:
+- 4.測試將會以下指令 compile 同學們的程式碼(C++ or C ):
 
     - C++:
 
     - ```g++ -pthread -std=c++11 -O2 -s pi.cpp -o pi```
    
-    - 或
-
     - C:
 
     - ```gcc -pthread -std=gnu99 -O2 -s pi.c -o pi```
