@@ -51,6 +51,15 @@ taskset -c 0,1,2,3 ./bin/cg
 更詳細的內容請參考附件的 PDF 檔案。
 
 # Description in English version
+==================== 11 / 06 Update =============================
+
+For the output, please make sure that the output format of the revised program is the same as the original one, include any newline and space.
+
+If the value is different from the original value, don't worry, this is acceptable. Of course, if the values ​​are the same, it is also acceptable.
+
+You only need to ensure that the message after "Complete..." is "VERIFICATION SUCCESSFUL" and the values ​​will not differ from the original ones by more than 1.0E-10.
+
+================================================================= 
 
 ## Note：
 
