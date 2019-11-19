@@ -5,3 +5,4 @@
 ## Homework list
 - Programming Assignment I: Pthreads Programming
 - Programming Assignment II: OpenMP Programming
+- Programming Assignment III: MPI Programming
