@@ -1,9 +1,30 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "mpi.h"
 #ifndef W
 #define W 20                                    // Width
 #endif
 int main(int argc, char **argv) {
+  // r = rank, the current cpu's rank in the all cpu. Start from zero
+  // s = size, how many number of all cpu
+  /* st = status, represents the status of the received message
+     The structure listed below:
+        typedef struct _MPI_Status {
+          int count;
+          int cancelled;
+          int MPI_SOURCE;
+          int MPI_TAG;
+          int MPI_ERROR;
+        } MPI_Status, *PMPI_Status;
+  */
+
+  int r, s;
+	MPI_Init(NULL, NULL);
+	MPI_Comm_rank(MPI_COMM_WORLD, &r);
+	MPI_Comm_size(MPI_COMM_WORLD, &s);
+	MPI_Status st;
+  
+  
   int L = atoi(argv[1]);                        // Length
   int iteration = atoi(argv[2]);                // Iteration
   srand(atoi(argv[3]));                         // Seed
