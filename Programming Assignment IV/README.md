@@ -20,3 +20,20 @@
 - 15% - Performance - 依照程式的執行速度在班上的排名，按比例給分。
 
 ## English Note
+### Note：
+- Your program should be able to accept two parameters as input.
+- The output format of your program must be the same as the serial version. It is acceptable if the error of the output value is less than 0.001.
+- Remember to rename your source code file to {studentID}.cu (for instance, 0765432.cu).
+- You should upload your code directly. Do not zip the file.
+
+### Brief description：
+- You are required to use CUDA to improve the program performance through the capabilities of GPU.
+- Please read the spec for more detail - here.
+
+### Some useful commands：
+- gcc serial_wave.c -o serial_wave -lm
+- nvcc cuda_wave.cu -o cuda_wave
+
+### Judge：
+- 85% - Correctness and Scalability - The output format is the same as original one, and the revised program can correctly improve the performance.
+- 15% - Performance - Test your program and give points by the rank.
