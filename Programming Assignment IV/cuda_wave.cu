@@ -196,16 +196,18 @@ int main(int argc, char *argv[])
    cudaMemcpy(device_values, values, sizeof(float)*(1+tpoints), cudaMemcpyHostToDevice);
 	printf("Updating all points for all time steps...\n");
    //update();
+   // We allocate the memroy considered 
    int block;
-		if(tpoints%32){
-			block = 1 + tpoints/32;
-			update<<<block, 32>>>(device_values, tpoints, nsteps);
-		}
-		else{
-			block = tpoints/32;
-			update<<<block, 32>>>(device_values, tpoints, nsteps);
-		}
-		cudaMemcpy(values, device_values, sizeof(float)*(1+tpoints), cudaMemcpyDeviceToHost);
+   int threadsPerBlock = 256;
+	if(tpoints%32){
+		block = 1 + tpoints/32;
+		update<<<block, threadsPerBlock>>>(device_values, tpoints, nsteps);
+	}
+	else{
+		block = tpoints/32;
+		update<<<block, threadsPerBlock>>>(device_values, tpoints, nsteps);
+	}
+	cudaMemcpy(values, device_values, sizeof(float)*(1+tpoints), cudaMemcpyDeviceToHost);
 	printf("Printing final results...\n");
 	printfinal();
    printf("\nDone.\n\n");
