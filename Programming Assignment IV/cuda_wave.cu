@@ -151,13 +151,17 @@ __global__ void update(float *device_values, int tpoints, int nsteps)
 		float total_oldval = total_values;
 		float total_newval;
 		for(i=1; i<=nsteps; i++){
-			if((j==1) || (j==tpoints))
+         // Update points along line for this time step 
+         if((j==1) || (j==tpoints))
+         // global endpoints 
 				total_newval = 0.0;
 			else
-				total_newval = do_math(total_oldval, total_values);
+            total_newval = do_math(total_oldval, total_values);
+         // Update old values with new values 
 			total_oldval = total_values;
 			total_values = total_newval;
-		}
+      }
+      // put current value on device into device_values array 
 		device_values[j] = total_values;
 	}
 }
@@ -183,15 +187,29 @@ void printfinal()
 int main(int argc, char *argv[])
 {
 	sscanf(argv[1],"%d",&tpoints);
-	sscanf(argv[2],"%d",&nsteps);
+   sscanf(argv[2],"%d",&nsteps);
+   // Create a space for cuda memory
+   cudaMalloc(&device_values, sizeof(float)*(1+tpoints));
 	check_param();
 	printf("Initializing points on the line...\n");
-	init_line();
+   init_line();
+   cudaMemcpy(device_values, values, sizeof(float)*(1+tpoints), cudaMemcpyHostToDevice);
 	printf("Updating all points for all time steps...\n");
-	update();
+   //update();
+   int block;
+		if(tpoints%32){
+			block = 1 + tpoints/32;
+			update<<<block, 32>>>(device_values, tpoints, nsteps);
+		}
+		else{
+			block = tpoints/32;
+			update<<<block, 32>>>(device_values, tpoints, nsteps);
+		}
+		cudaMemcpy(values, device_values, sizeof(float)*(1+tpoints), cudaMemcpyDeviceToHost);
 	printf("Printing final results...\n");
 	printfinal();
-	printf("\nDone.\n\n");
+   printf("\nDone.\n\n");
+   cudaFree(device_values);
 	
 	return 0;
 }
