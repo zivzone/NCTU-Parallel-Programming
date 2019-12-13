@@ -1,12 +1,14 @@
 /**********************************************************************
  * DESCRIPTION:
- *   Serial Concurrent Wave Equation - C Version
+ *   Cuda Concurrent Wave Equation - Cuda C Version
  *   This program implements the concurrent wave equation
  *********************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
+
+#include <cuda.h>
 
 #define MAXPOINTS 1000000
 #define MAXSTEPS 1000000
@@ -24,6 +26,10 @@ int nsteps,                 	/* number of time steps */
 float  values[MAXPOINTS+2], 	/* values at time t */
        oldval[MAXPOINTS+2], 	/* values at time (t-dt) */
        newval[MAXPOINTS+2]; 	/* values at time (t+dt) */
+
+// define the value on devices
+// use pointer to point them
+float *device_values;
 
 
 /**********************************************************************
@@ -81,7 +87,9 @@ void init_line(void)
 /**********************************************************************
  *      Calculate new values using wave equation
  *********************************************************************/
-void do_math(int i)
+//float total_oldval;
+//float total_values;
+/*void do_math(int i)
 {
    float dtime, c, dx, tau, sqtau;
 
@@ -91,33 +99,69 @@ void do_math(int i)
    tau = (c * dtime / dx);
    sqtau = tau * tau;
    newval[i] = (2.0 * values[i]) - oldval[i] + (sqtau *  (-2.0)*values[i]);
-}
+}*/
+__device__ float do_math(float total_oldval, float total_values)
+	{
+	   float dtime, c, dx, tau, sqtau;
+	
+	   dtime = 0.3;
+	   c = 1.0;
+	   dx = 1.0;
+	   tau = (c * dtime / dx);
+      sqtau = tau * tau;
+      // modefy original one into the version of :
+      // given total oldval to do math with total current value to get total new value
+		float total_newval;
+		total_newval = (2.0 * total_values) - total_oldval + (sqtau *  (-2.0)*total_values);
+		return total_newval;
+	}
+	
 
 /**********************************************************************
  *     Update all values along line a specified number of times
  *********************************************************************/
-void update()
+/* void update()
 {
    int i, j;
 
-   /* Update values for each time step */
+   // Update values for each time step 
    for (i = 1; i<= nsteps; i++) {
-      /* Update points along line for this time step */
+      // Update points along line for this time step 
       for (j = 1; j <= tpoints; j++) {
-         /* global endpoints */
+         // global endpoints 
          if ((j == 1) || (j  == tpoints))
             newval[j] = 0.0;
          else
             do_math(j);
       }
 
-      /* Update old values with new values */
+      // Update old values with new values 
       for (j = 1; j <= tpoints; j++) {
          oldval[j] = values[j];
          values[j] = newval[j];
       }
    }
+}*/
+__global__ void update(float *device_values, int tpoints, int nsteps)
+{
+	int i, j;
+	j = (1+threadIdx.x) + blockIdx.x*32;
+	if( j <= tpoints ){
+		float total_values = device_values[j];
+		float total_oldval = total_values;
+		float total_newval;
+		for(i=1; i<=nsteps; i++){
+			if((j==1) || (j==tpoints))
+				total_newval = 0.0;
+			else
+				total_newval = do_math(total_oldval, total_values);
+			total_oldval = total_values;
+			total_values = total_newval;
+		}
+		device_values[j] = total_values;
+	}
 }
+	
 
 /**********************************************************************
  *     Print final results
