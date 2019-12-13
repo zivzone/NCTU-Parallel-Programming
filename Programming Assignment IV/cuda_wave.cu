@@ -196,17 +196,20 @@ int main(int argc, char *argv[])
    cudaMemcpy(device_values, values, sizeof(float)*(1+tpoints), cudaMemcpyHostToDevice);
 	printf("Updating all points for all time steps...\n");
    //update();
-   // We allocate the memroy considered 
+   // We allocate the memroy considered block number and threadsperbllock
+   // You can take the offical document as reference: 3.2.2. Device Memory
+   // https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html
    int block;
    int threadsPerBlock = 256;
 	if(tpoints%32){
+      // the part of less than 32 still need to be allocate
 		block = 1 + tpoints/32;
-		update<<<block, threadsPerBlock>>>(device_values, tpoints, nsteps);
 	}
 	else{
 		block = tpoints/32;
-		update<<<block, threadsPerBlock>>>(device_values, tpoints, nsteps);
-	}
+		//update<<<block, threadsPerBlock>>>(device_values, tpoints, nsteps);
+   }
+   update<<<block, threadsPerBlock>>>(device_values, tpoints, nsteps);
 	cudaMemcpy(values, device_values, sizeof(float)*(1+tpoints), cudaMemcpyDeviceToHost);
 	printf("Printing final results...\n");
 	printfinal();
