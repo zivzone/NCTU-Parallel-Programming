@@ -8,7 +8,7 @@
 
 ### 簡要說明：
 - 撰寫 CUDA 版本的程式以利用 GPU 來加速運算。
-- 詳細的規範請參照老師的個人網站 - here。
+- 詳細的規範請參照老師的個人網站 - [here](https://people.cs.nctu.edu.tw/~ypyou/courses/PP-f19/assignments/HW4.pdf)。
 
 ### 執行方式：
 - gcc serial_wave.c -o serial_wave -lm
@@ -28,7 +28,7 @@
 
 ### Brief description：
 - You are required to use CUDA to improve the program performance through the capabilities of GPU.
-- Please read the spec for more detail - here.
+- Please read the spec for more detail - [here](https://people.cs.nctu.edu.tw/~ypyou/courses/PP-f19/assignments/HW4.pdf).
 
 ### Some useful commands：
 - gcc serial_wave.c -o serial_wave -lm
