@@ -104,7 +104,7 @@ int writebmp(const char *filename, Image *img)
     fout.close();
 }
 
-void histogram(Image *img,uint32_t R[256],uint32_t G[256],uint32_t B[256]){
+/*void histogram(Image *img,uint32_t R[256],uint32_t G[256],uint32_t B[256]){
     std::fill(R, R+256, 0);
     std::fill(G, G+256, 0);
     std::fill(B, B+256, 0);
@@ -115,7 +115,7 @@ void histogram(Image *img,uint32_t R[256],uint32_t G[256],uint32_t B[256]){
         G[pixel.G]++;
         B[pixel.B]++;
     }
-}
+}*/
 
 int main(int argc, char *argv[])
 {
@@ -240,7 +240,7 @@ int main(int argc, char *argv[])
 	            }*/
 	
 	            // write buffer (transfer input data to device)
-	        err = clEnqueueWriteBuffer(cq, input, CL_TRUE, 0, img->size * sizeof(RGB), img->d, 0, NULL, NULL);
+	        err = clEnqueueWriteBuffer(cq, input, CL_TRUE, 0, img->size * sizeof(RGB), img->data, 0, NULL, NULL);
 	            
 	            // arguments
 	        err = clSetKernelArg(k, 0, sizeof(cl_mem), &input);
