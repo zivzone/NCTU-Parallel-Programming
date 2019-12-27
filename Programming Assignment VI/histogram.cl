@@ -1,24 +1,18 @@
 typedef struct tag_RGB
 {
-    uchar R; // uchar = unsigned char: represents [0, 255]
+    uchar R; 
     uchar G;
     uchar B;
     uchar align;
 } RGB;
 
 // kernel function
-__kernel void histogram(__global RGB *data, int inputSize, __global int *outputR, __global int *outputG, __global int *outputB) {
-    // variables
-    int threadId = get_global_id(0);
-    
-    // accumulation
-    if (threadId < inputSize) {
-        // initialization
-        RGB pixel = data[threadId];
-        
-        // histogram
-        atomic_inc(&outputR[pixel.R]);
-        atomic_inc(&outputG[pixel.G]);
-        atomic_inc(&outputB[pixel.B]);
+__kernel void histogram(__global RGB *data, int s, __global int *o_r, __global int *o_g, __global int *o_b) {
+    int t_id = get_global_id(0);
+    if (t_id < s) {
+        RGB p = data[t_id];
+        atomic_inc(&o_r[p.R]);
+        atomic_inc(&o_g[p.G]);
+        atomic_inc(&o_b[p.B]);
     }
 }

@@ -119,68 +119,29 @@ int writebmp(const char *filename, Image *img)
 
 int main(int argc, char *argv[])
 {
-    ////////////////////////////////////////
-    //cl_int errCode;
     cl_int err;
-	//cl_platform_id platformId;
     cl_platform_id p_id;
-	//cl_device_id deviceId;
     cl_device_id d_id;
-	//cl_context context;
     cl_context cx;
-	//cl_command_queue commandQueue;
     cl_command_queue cq;
-	//cl_program program;
     cl_program pg;
-	//cl_kernel kernel;
     cl_kernel k;
-	//cl_mem inputRGB, outputR, outputG, outputB;
-    //cl_mem inputRGB, outputR, outputG, outputB;
     cl_mem input;
     cl_mem o_r;
     cl_mem o_g;
     cl_mem o_b;
-	//int resultR[256];
-	//int resultG[256];
-	//int resultB[256];
     int fr[256];
 	int fg[256];
 	int fb[256];
-	    
-	// work group size
-	// size_t localWS[2] = {64, 64};
     size_t ws_l[2] = {64, 64};
-	// size_t globalWS[2];
     size_t ws_g[2];
 	
-	// check platform
 	clGetPlatformIDs(1, &p_id, NULL);
-	    
-	// check device
 	err = clGetDeviceIDs(p_id, CL_DEVICE_TYPE_GPU, 1, &d_id, NULL);
-	/*if (errCode != CL_SUCCESS) {
-	    printf("clGetDeviceIDs() fails w/ error code = %d\n", errCode);
-	    return 0;
-	}*/
-	
-	// create context
 	cx = clCreateContext(0, 1, &d_id, NULL, NULL, &err);
-	/*if (!context) {
-        printf("clCreateContext() fails w/ error code = %d\n", errCode);
-        return 0;
-    }*/
-	    
-	// construct command queue
 	cq = clCreateCommandQueue(cx, d_id, 0, &err);
-	/*if (!commandQueue) {
-	    printf("clCreateCommandQueue() fails w/ error code = %d\n", errCode);
-	    return 0;
-    }*/
 	std::ifstream infile("histogram.cl", std::ios_base::in);
     infile.seekg(0, std::ios_base::end);
-	    // create program
-	//int length;
-	//std::vector<char> data;
     std::vector<char> d;
 	int l;
     l = infile.tellg();
@@ -188,30 +149,11 @@ int main(int argc, char *argv[])
     d = std::vector<char>(l + 1);
     infile.read(&d[0], l);
     d[l] = 0;
-
-    //const char *source = &data[0];
     const char *s = &d[0];
 	pg = clCreateProgramWithSource(cx, 1, &s, 0, 0);
 	infile.close();
-	    /*if (!program) {
-	        printf("program is NULL\n");
-	        return 0;
-	    }*/
-	    
-	    // build program
 	err = clBuildProgram(pg, 0, NULL, NULL, NULL, NULL); 
-	    /*if (errCode != CL_SUCCESS) {
-	        printf("clBuildProgram() fails w/ error code = %d\n", errCode);
-	        return 0;
-	    }*/
-	
-	    // create kernel
 	k = clCreateKernel(pg, "histogram", &err);
-	    /*if (!kernel) {
-	        printf("clCreateKernel() fails w/ error code = %d\n", errCode);
-	        return 0;
-	    }*/
-    ////////////////////////////////////////
     char *filename;
     if (argc >= 2)
     {
@@ -229,64 +171,33 @@ int main(int argc, char *argv[])
 
             histogram(img,R,G,B);
             */
-            // create buffer
 	        input = clCreateBuffer(cx, CL_MEM_READ_ONLY, img->size * sizeof(RGB), NULL, NULL);
 	        o_r = clCreateBuffer(cx, CL_MEM_WRITE_ONLY, 256 * sizeof(int), NULL, NULL);
 	        o_g = clCreateBuffer(cx, CL_MEM_WRITE_ONLY, 256 * sizeof(int), NULL, NULL);
 	        o_b = clCreateBuffer(cx, CL_MEM_WRITE_ONLY, 256 * sizeof(int), NULL, NULL);
-	            /*if (!inputRGB || !outputR || !outputG || !outputB) {
-	                printf("clCreateBuffer() fails\n");
-	                return 0;
-	            }*/
-	
-	            // write buffer (transfer input data to device)
 	        err = clEnqueueWriteBuffer(cq, input, CL_TRUE, 0, img->size * sizeof(RGB), img->data, 0, NULL, NULL);
-	            
-	            // arguments
 	        err = clSetKernelArg(k, 0, sizeof(cl_mem), &input);
 	        err = clSetKernelArg(k, 1, sizeof(int), &img->size);
 	        err = clSetKernelArg(k, 2, sizeof(cl_mem), &o_r);
 	        err = clSetKernelArg(k, 3, sizeof(cl_mem), &o_g);
 	        err = clSetKernelArg(k, 4, sizeof(cl_mem), &o_b);
-	            /*if (errCode != CL_SUCCESS) {
-	                printf("ckSetKernekArg() fails w/ error code = %d\n", errCode);
-	                return 0;
-	            }*/
-	            
-	            // detemine global work group size
 	        if (img->size % ws_l[0] != 0) {
-	            //int remainder = img->size % localWS[0];
                 int rm = img->size % ws_l[0];
 	            ws_g[0] = img->size - rm + ws_l[0];
 	        } else {
 	            ws_g[0] = img->size;
 	        }
 	        if (img->size % ws_l[1] != 0) {
-	            //int remainder = img->size % localWS[1];
                 int rm = img->size % ws_l[1];
 	            ws_g[1] = img->size - rm + ws_l[1];
 	        } else {
 	            ws_g[1] = img->size;
 	        }
-	            
-	            // execution
 	        err = clEnqueueNDRangeKernel(cq, k, 1, NULL, ws_g, ws_l, 0, NULL, NULL);
-	            /*if (errCode != CL_SUCCESS) {
-	                printf("clEnqueueNDRangeKernel() fails w/ error code = %d\n", errCode);
-	                return 0;
-	            }*/
-	            
 	        clFinish(cq);
-	
-	            // read results
 	        err = clEnqueueReadBuffer(cq, o_r, CL_TRUE, 0, 256 * sizeof(int), fr, 0, NULL, NULL);
 	        err = clEnqueueReadBuffer(cq, o_g, CL_TRUE, 0, 256 * sizeof(int), fg, 0, NULL, NULL);
 	        err = clEnqueueReadBuffer(cq, o_b, CL_TRUE, 0, 256 * sizeof(int), fb, 0, NULL, NULL);
-	            /*if (errCode != CL_SUCCESS) {
-	                printf("clEnqueueReadBuffer() fails w/ error code = %d\n", errCode);
-	                return 0;
-	            }*/
-	
             int max = 0;
             for(int i=0;i<256;i++){
                 max = fr[i] > max ? fr[i] : max;
@@ -299,7 +210,6 @@ int main(int argc, char *argv[])
             ret->height = 256;
             ret->weight = 256;
             ret->size = 256 * 256;
-            //ret->data = new RGB[256 * 256];
             ret->data = new RGB[256 * 256]{};
 
             for(int i=0;i<ret->height;i++){
@@ -315,9 +225,7 @@ int main(int argc, char *argv[])
 
             std::string newfile = "hist_" + std::string(filename); 
             writebmp(newfile.c_str(), ret);
-            ///////////////////
             delete [] ret;
-            ///////////////////
         }
     }else{
         printf("Usage: ./hist <img.bmp> [img2.bmp ...]\n");
